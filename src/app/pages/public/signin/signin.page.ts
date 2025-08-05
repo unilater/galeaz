@@ -1,3 +1,4 @@
+// src/app/pages/public/signin/signin.page.ts
 import { Component, OnInit } from '@angular/core';
 import { LoadingController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -12,10 +13,8 @@ import { Router } from '@angular/router';
 })
 export class SigninPage implements OnInit {
 
-  current_year: number = new Date().getFullYear();
-
   signin_form: FormGroup;
-  submit_attempt: boolean = false;
+  submit_attempt = false;
 
   constructor(
     private authService: AuthService,
@@ -23,14 +22,12 @@ export class SigninPage implements OnInit {
     private formBuilder: FormBuilder,
     private toastService: ToastService,
     private router: Router
-  ) { }
+  ) {}
 
   ngOnInit() {
-
-    // Setup form
     this.signin_form = this.formBuilder.group({
-      email: ['', Validators.compose([Validators.email, Validators.required])],
-      password: ['', Validators.compose([Validators.minLength(6), Validators.required])]
+      email: ['', [Validators.email, Validators.required]],
+      password: ['', [Validators.minLength(6), Validators.required]]
     });
 
     // DEBUG: Prefill inputs
@@ -38,36 +35,34 @@ export class SigninPage implements OnInit {
     this.signin_form.get('password').setValue('123456');
   }
 
-  // Sign in
   async signIn() {
-
     this.submit_attempt = true;
 
-    // If email or password empty
-    if (this.signin_form.value.email == '' || this.signin_form.value.password == '') {
-      this.toastService.presentToast('Error', 'Please input email and password', 'top', 'danger', 2000);
+    if (this.signin_form.invalid) {
+      this.toastService.presentToast('Error', 'Please input valid email and password', 'top', 'danger', 2000);
+      return;
+    }
 
-    } else {
+    const loading = await this.loadingController.create({
+      cssClass: 'default-loading',
+      message: '<p>Signing in...</p><span>Please be patient.</span>',
+      spinner: 'crescent'
+    });
+    await loading.present();
 
-      // Proceed with loading overlay
-      const loading = await this.loadingController.create({
-        cssClass: 'default-loading',
-        message: '<p>Signing in...</p><span>Please be patient.</span>',
-        spinner: 'crescent'
-      });
-      await loading.present();
+    try {
+      const res = await this.authService.signIn(this.signin_form.value.email, this.signin_form.value.password);
+      await loading.dismiss();
 
-      // TODO: Add your sign in logic
-      // ...
+      if (res.success) {
+        this.router.navigate(['/home']);
+      } else {
+        this.toastService.presentToast('Error', 'Invalid credentials', 'top', 'danger', 3000);
+      }
 
-      // Fake timeout
-      setTimeout(async () => {
-        // Sign in success
-        await this.router.navigate(['/home']);
-        loading.dismiss();
-      }, 2000);
-
+    } catch (error) {
+      await loading.dismiss();
+      this.toastService.presentToast('Error', 'Network or server error', 'top', 'danger', 3000);
     }
   }
-
 }

@@ -1,61 +1,47 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Storage } from '@ionic/storage-angular';
 
 @Injectable({
   providedIn: 'root'
 })
-
 export class AuthService {
 
   constructor(
-    private router: Router
-  ) { }
+    private router: Router,
+    private http: HttpClient,
+    private storage: Storage // <-- ora si inietta direttamente
+  ) {
+    this.init();
+  }
 
-  // Get user session
+  private async init() {
+    await this.storage.create(); // inizializza lo storage
+  }
+
   async getSession() {
-
-    // ...
-    // put auth session here
-    // ...
-
-    // Sample only - remove this after real authentication / session
-    let session = {
-      email: 'john.doe@mail.com'
+    const token = await this.storage.get('auth_token');
+    if (token) {
+      return { token };
     }
-
     return false;
-    // return session;
   }
 
-  // Sign in
-  async signIn(email: string, password: string) {
-    // Sample only - remove this after real authentication / session
-    let sample_user = {
-      email: email,
-      password: password
-    }
-
-    return sample_user;
+  signIn(email: string, password: string) {
+    return this.http.post('https://pannellogaleazzi.appnativeitalia.com/api/login.php', { email, password })
+      .toPromise()
+      .then(async (res: any) => {
+        if (res.success && res.token) {
+          await this.storage.set('auth_token', res.token);
+          return res;
+        }
+        throw new Error('Invalid credentials');
+      });
   }
 
-  // Sign up
-  async signUp(email: string, password: string) {
-    // Sample only - remove this after real authentication / session
-    let sample_user = {
-      email: email,
-      password: password
-    }
-
-    return sample_user;
-  }
-
-  // Sign out
   async signOut() {
-    // ...
-    // clean subscriptions / local storage etc. here
-    // ...
-
-    // Navigate to sign-in
+    await this.storage.remove('auth_token');
     this.router.navigateByUrl('/signin');
   }
 }
