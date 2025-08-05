@@ -43,32 +43,37 @@ export class SignupPage implements OnInit {
 
     this.submit_attempt = true;
 
-    // If email or password empty
-    if (this.signup_form.value.email == '' || this.signup_form.value.password == '' || this.signup_form.value.password_repeat == '') {
-      this.toastService.presentToast('Error', 'Please fill in all fields', 'top', 'danger', 4000);
+    if (this.signup_form.invalid) {
+      this.toastService.presentToast('Error', 'Please fill in all fields correctly', 'top', 'danger', 4000);
+      return;
+    }
 
-      // If passwords do not match
-    } else if (this.signup_form.value.password != this.signup_form.value.password_repeat) {
+    if (this.signup_form.value.password !== this.signup_form.value.password_repeat) {
       this.toastService.presentToast('Error', 'Passwords must match', 'top', 'danger', 4000);
+      return;
+    }
 
-    } else {
+    // Proceed with loading overlay
+    const loading = await this.loadingController.create({
+      cssClass: 'default-loading',
+      message: '<p>Signing up...</p><span>Please be patient.</span>',
+      spinner: 'crescent'
+    });
+    await loading.present();
 
-      // Proceed with loading overlay
-      const loading = await this.loadingController.create({
-        cssClass: 'default-loading',
-        message: '<p>Signing up...</p><span>Please be patient.</span>',
-        spinner: 'crescent'
-      });
-      await loading.present();
+    try {
+      const res = await this.authService.signUp(this.signup_form.value.email, this.signup_form.value.password);
+      await loading.dismiss();
 
-      // TODO: Add your sign up logic
-      // ...
-
-      // Success messages + routing
-      this.toastService.presentToast('Welcome!', 'Lorem ipsum', 'top', 'success', 2000);
-      await this.router.navigate(['/home']);
-      loading.dismiss();
+      if (res.success) {
+        this.toastService.presentToast('Welcome!', 'Account created successfully', 'top', 'success', 2000);
+        this.router.navigate(['/home']);
+      } else {
+        this.toastService.presentToast('Error', res.message || 'Signup failed', 'top', 'danger', 3000);
+      }
+    } catch (e) {
+      await loading.dismiss();
+      this.toastService.presentToast('Error', 'Network or server error', 'top', 'danger', 3000);
     }
   }
-
 }

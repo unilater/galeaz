@@ -60,4 +60,10 @@ export class WelcomePage implements AfterContentChecked {
     this.router.navigateByUrl('/signin');
   }
 
+  // Aggiungi questo metodo nella classe WelcomePage
+goToPayPal() {
+  this.router.navigate(['/paypal']);
+}
+
+
 }

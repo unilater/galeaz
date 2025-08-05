@@ -34,6 +34,10 @@ const routes: Routes = [
     loadChildren: () => import('./pages/public/password-reset/password-reset.module').then( m => m.PasswordResetPageModule),
     // canActivate: [PublicGuard] // Prevent for signed in users
   },
+  {
+    path: 'paypal',
+    loadChildren: () => import('./pages/payment/paypal/paypal.module').then(m => m.PaypalPageModule)
+  },
 ];
 @NgModule({
   imports: [

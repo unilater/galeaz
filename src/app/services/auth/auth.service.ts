@@ -11,7 +11,7 @@ export class AuthService {
   constructor(
     private router: Router,
     private http: HttpClient,
-    private storage: Storage // <-- ora si inietta direttamente
+    private storage: Storage // <-- iniettato direttamente
   ) {
     this.init();
   }
@@ -40,8 +40,18 @@ export class AuthService {
       });
   }
 
+  // Metodo per signup con backend PHP
+  signUp(email: string, password: string) {
+    return this.http.post('https://pannellogaleazzi.appnativeitalia.com/api/signup.php', { email, password })
+      .toPromise()
+      .then((res: any) => {
+        return res;
+      });
+  }
+
   async signOut() {
     await this.storage.remove('auth_token');
     this.router.navigateByUrl('/signin');
   }
 }
+
