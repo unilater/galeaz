@@ -1,12 +1,9 @@
 <ion-header collapse="fade" [translucent]="true">
   <ion-toolbar color="dark">
     <ion-buttons slot="start">
-      <ion-back-button color="secondary" text="Back" defaultHref="/home">
-      </ion-back-button>
+      <ion-back-button color="secondary" text="Back" defaultHref="/home"></ion-back-button>
     </ion-buttons>
-    <ion-title color="light">
-      Questionario Diritti Utente
-    </ion-title>
+    <ion-title color="light">Questionario Diritti Utente</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -62,12 +59,48 @@
           <ion-input formControlName="lavoro" placeholder="Inserisci occupazione" required></ion-input>
         </ion-item>
 
+        <ion-list-header class="ion-list-header-small ion-margin-top">
+          <ion-label>
+            <ion-text color="tertiary">Informazioni Famiglia e Patrimonio</ion-text>
+          </ion-label>
+        </ion-list-header>
+
+        <ion-item>
+          <ion-label position="floating">Stato Patrimoniale</ion-label>
+          <ion-input formControlName="statoPatrimoniale" placeholder="Breve descrizione"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>Presenza Testamento</ion-label>
+          <ion-toggle formControlName="presenzaTestamento"></ion-toggle>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>Regime Matrimoniale: Comunione dei beni</ion-label>
+          <ion-toggle formControlName="coniugatoInComunione"></ion-toggle>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Numero Eredi</ion-label>
+          <ion-input type="number" formControlName="numeroEredi" min="0"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>Presenza Figli Minori</ion-label>
+          <ion-toggle formControlName="presenzaFigliMinori"></ion-toggle>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Tutela Legale per Minori (se presente)</ion-label>
+          <ion-textarea formControlName="tutelaMinori" placeholder="Dettagli o note"></ion-textarea>
+        </ion-item>
+
       </ion-list>
 
       <ion-button expand="block" type="submit" [disabled]="questionarioForm.invalid" class="ion-margin-top">
         Invia Questionario
       </ion-button>
-    </form>
 
+    </form>
   </div>
 </ion-content>

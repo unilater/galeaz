@@ -111,6 +111,7 @@ export class HomePage implements OnInit, OnDestroy {
             eta: res.user.eta || null,
             email: res.user.email || ''
           };
+
           this.datiPresenti = this.userProfile.eta !== null && this.userProfile.eta !== undefined && this.userProfile.eta !== '';
 
           if (this.needsQuestionarioCompletion) {
@@ -122,12 +123,23 @@ export class HomePage implements OnInit, OnDestroy {
 
           this.dataService.getTutele(this.userId!).subscribe({
             next: (res2: any) => {
+              console.log("Risposta tutele:", res2); // Log della risposta delle tutele
+
               if (res2.success && res2.data) {
-                this.sections = this.sections.map(section => ({
-                  ...section,
-                  content: res2.data[section.key] || 'Nessuna informazione disponibile.'
-                }));
+                // Mappa i dati nelle sezioni in base ai nomi delle chiavi
+                this.sections = this.sections.map(section => {
+                  const content = res2.data[section.key] || 'Nessuna informazione disponibile.'; // Messaggio di fallback
+                  console.log(`Mappatura sezione ${section.key}: ${content}`);  // Log della mappatura
+                  return {
+                    ...section,
+                    content: content
+                  };
+                });
+                console.log("Sezioni aggiornate:", this.sections);  // Log delle sezioni aggiornate
+              } else {
+                console.log("Dati tutele non trovati.");
               }
+
               this.content_loaded = true;
               this.showContent = true;
             },

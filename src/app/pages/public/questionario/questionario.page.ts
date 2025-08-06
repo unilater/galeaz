@@ -24,7 +24,7 @@ export class QuestionarioPage implements OnInit {
     private http: HttpClient,
     private router: Router,
     private storage: Storage
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.init();
@@ -40,7 +40,14 @@ export class QuestionarioPage implements OnInit {
       statoCivile: ['', Validators.required],
       figli: [0, [Validators.required, Validators.min(0)]],
       patologie: [''],
-      lavoro: ['', Validators.required]
+      lavoro: ['', Validators.required],
+      // Nuovi campi utili per diritto famiglia
+      statoPatrimoniale: ['', Validators.required],
+      presenzaTestamento: [false],
+      coniugatoInComunione: [false],
+      numeroEredi: [0, [Validators.min(0)]],
+      presenzaFigliMinori: [false],
+      tutelaMinori: [''],  // eventuale tutela legale specifica
     });
 
     if (this.userId) {
@@ -62,7 +69,6 @@ export class QuestionarioPage implements OnInit {
 
     this.http.get(`${this.apiUrl}?user_id=${this.userId}`).subscribe({
       next: async (res: any) => {
-        console.log('Load user data response:', res);
         await loading.dismiss();
         if (res.success && res.data) {
           this.questionarioForm.patchValue({
@@ -71,7 +77,14 @@ export class QuestionarioPage implements OnInit {
             statoCivile: this.capitalizeFirstLetter(res.data.statoCivile),
             figli: res.data.figli,
             patologie: res.data.patologie,
-            lavoro: res.data.lavoro
+            lavoro: res.data.lavoro,
+            // Se esistono nel backend, caricali pure qui:
+            statoPatrimoniale: res.data.statoPatrimoniale ?? '',
+            presenzaTestamento: res.data.presenzaTestamento ?? false,
+            coniugatoInComunione: res.data.coniugatoInComunione ?? false,
+            numeroEredi: res.data.numeroEredi ?? 0,
+            presenzaFigliMinori: res.data.presenzaFigliMinori ?? false,
+            tutelaMinori: res.data.tutelaMinori ?? ''
           });
         } else {
           const toast = await this.toastCtrl.create({
@@ -84,7 +97,6 @@ export class QuestionarioPage implements OnInit {
         }
       },
       error: async (err) => {
-        console.error('Errore nel caricamento dati:', err);
         await loading.dismiss();
         const toast = await this.toastCtrl.create({
           message: 'Errore nel caricamento dei dati',
@@ -133,7 +145,6 @@ export class QuestionarioPage implements OnInit {
 
     this.http.post(this.apiUrl, payload).subscribe({
       next: async (res: any) => {
-        console.log('Submit questionario response:', res);
         if (!res || !res.success) {
           await loading.dismiss();
           const toast = await this.toastCtrl.create({
@@ -146,7 +157,6 @@ export class QuestionarioPage implements OnInit {
           return;
         }
 
-        // Chiamata a scrivi_tutele.php
         const loadingTutele = await this.loadingCtrl.create({
           message: 'Salvataggio tutele...',
           spinner: 'crescent'
@@ -155,7 +165,6 @@ export class QuestionarioPage implements OnInit {
 
         this.http.get(`${this.scriviTuteleUrl}?user_id=${this.userId}`).subscribe({
           next: async (res2: any) => {
-            console.log('Scrivi tutele response:', res2);
             await loading.dismiss();
             await loadingTutele.dismiss();
 
@@ -181,8 +190,7 @@ export class QuestionarioPage implements OnInit {
             await this.storage.set('questionario_completo', true);
             this.router.navigate(['/home']);
           },
-          error: async (err) => {
-            console.error('Errore nel salvataggio delle tutele:', err);
+          error: async () => {
             await loading.dismiss();
             await loadingTutele.dismiss();
             const toast = await this.toastCtrl.create({
@@ -195,8 +203,7 @@ export class QuestionarioPage implements OnInit {
           }
         });
       },
-      error: async (err) => {
-        console.error('Errore di rete invio questionario:', err);
+      error: async () => {
         await loading.dismiss();
         const toast = await this.toastCtrl.create({
           message: 'Errore di rete, riprova più tardi',
@@ -210,4 +217,3 @@ export class QuestionarioPage implements OnInit {
   }
 
 }
-
