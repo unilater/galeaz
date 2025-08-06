@@ -1,0 +1,49 @@
+:host {
+  ion-content {
+    background: var(--ion-color-primary-shade);
+    color: var(--ion-color-light);
+  }
+
+  ion-list.white-card {
+    background: var(--ion-color-primary);
+    border-radius: 10px;
+    padding: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  ion-list-header {
+    background: var(--ion-color-primary-shade);
+    padding: 12px 16px;
+  }
+
+  ion-label {
+    color: var(--ion-color-light);
+    font-weight: 600;
+  }
+
+  ion-item {
+    --background: var(--ion-color-primary);
+    border-bottom: 1px solid var(--ion-color-primary-tint);
+    color: var(--ion-color-light);
+    min-height: 56px;
+  }
+
+  ion-input,
+  ion-textarea,
+  ion-select {
+    --color: var(--ion-color-light);
+    --placeholder-color: var(--ion-color-light-tint);
+    font-size: 16px;
+    min-height: 40px;
+  }
+
+  ion-select {
+    .select-interface-option {
+      color: var(--ion-color-dark);
+    }
+  }
+
+  ion-button {
+    margin-top: 20px;
+  }
+}

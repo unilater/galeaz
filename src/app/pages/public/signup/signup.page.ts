@@ -12,8 +12,6 @@ import { Router } from '@angular/router';
 })
 export class SignupPage implements OnInit {
 
-  current_year: number = new Date().getFullYear();
-
   signup_form: FormGroup;
   submit_attempt: boolean = false;
 
@@ -26,21 +24,14 @@ export class SignupPage implements OnInit {
   ) { }
 
   ngOnInit() {
-    // Setup form
     this.signup_form = this.formBuilder.group({
-      email: ['', Validators.compose([Validators.email, Validators.required])],
-      password: ['', Validators.compose([Validators.minLength(6), Validators.required])],
-      password_repeat: ['', Validators.compose([Validators.minLength(6), Validators.required])]
+      email: ['', [Validators.email, Validators.required]],
+      password: ['', [Validators.minLength(6), Validators.required]],
+      password_repeat: ['', [Validators.minLength(6), Validators.required]]
     });
-
-    // DEBUG: Prefill inputs
-    this.signup_form.get('email').setValue('john.doe@mail.com');
-    this.signup_form.get('password').setValue('123456');
   }
 
-  // Sign up
   async signUp() {
-
     this.submit_attempt = true;
 
     if (this.signup_form.invalid) {
@@ -53,7 +44,6 @@ export class SignupPage implements OnInit {
       return;
     }
 
-    // Proceed with loading overlay
     const loading = await this.loadingController.create({
       cssClass: 'default-loading',
       message: '<p>Signing up...</p><span>Please be patient.</span>',
@@ -62,13 +52,23 @@ export class SignupPage implements OnInit {
     await loading.present();
 
     try {
+      // Provo a fare la registrazione
       const res = await this.authService.signUp(this.signup_form.value.email, this.signup_form.value.password);
-      await loading.dismiss();
-
+      
       if (res.success) {
-        this.toastService.presentToast('Welcome!', 'Account created successfully', 'top', 'success', 2000);
-        this.router.navigate(['/home']);
+        // Se registrazione ok, login automatico
+        const loginRes = await this.authService.signIn(this.signup_form.value.email, this.signup_form.value.password);
+        await loading.dismiss();
+
+        if (loginRes.success) {
+          this.toastService.presentToast('Welcome!', 'Account created and logged in successfully', 'top', 'success', 2000);
+          this.router.navigate(['/home']);
+        } else {
+          this.toastService.presentToast('Error', 'Account created but failed to login automatically. Please login manually.', 'top', 'danger', 3000);
+          this.router.navigate(['/signin']);
+        }
       } else {
+        await loading.dismiss();
         this.toastService.presentToast('Error', res.message || 'Signup failed', 'top', 'danger', 3000);
       }
     } catch (e) {

@@ -1,0 +1,73 @@
+<ion-header collapse="fade" [translucent]="true">
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button color="secondary" text="Back" defaultHref="/home">
+      </ion-back-button>
+    </ion-buttons>
+    <ion-title color="light">
+      Questionario Diritti Utente
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="ion-padding">
+
+    <form *ngIf="questionarioForm" [formGroup]="questionarioForm" (ngSubmit)="submit()">
+
+      <ion-list class="white-card" lines="full">
+
+        <ion-list-header class="ion-list-header-small">
+          <ion-label>
+            <ion-text color="tertiary">Informazioni Personali</ion-text>
+          </ion-label>
+        </ion-list-header>
+
+        <ion-item>
+          <ion-label position="floating">Età</ion-label>
+          <ion-input type="number" formControlName="eta" required></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Sesso</ion-label>
+          <ion-select formControlName="sesso" placeholder="Seleziona sesso" required>
+            <ion-select-option value="Maschio">Maschio</ion-select-option>
+            <ion-select-option value="Femmina">Femmina</ion-select-option>
+            <ion-select-option value="Altro">Altro</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Stato Civile</ion-label>
+          <ion-select formControlName="statoCivile" placeholder="Seleziona stato civile" required>
+            <ion-select-option value="Celibe/Nubile">Celibe/Nubile</ion-select-option>
+            <ion-select-option value="Sposato/a">Sposato/a</ion-select-option>
+            <ion-select-option value="Divorziato/a">Divorziato/a</ion-select-option>
+            <ion-select-option value="Vedovo/a">Vedovo/a</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Numero di Figli</ion-label>
+          <ion-input type="number" formControlName="figli" min="0" required></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Patologie</ion-label>
+          <ion-textarea formControlName="patologie" placeholder="Inserisci patologie rilevanti"></ion-textarea>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Occupazione</ion-label>
+          <ion-input formControlName="lavoro" placeholder="Inserisci occupazione" required></ion-input>
+        </ion-item>
+
+      </ion-list>
+
+      <ion-button expand="block" type="submit" [disabled]="questionarioForm.invalid" class="ion-margin-top">
+        Invia Questionario
+      </ion-button>
+    </form>
+
+  </div>
+</ion-content>

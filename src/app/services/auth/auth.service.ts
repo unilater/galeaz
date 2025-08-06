@@ -11,13 +11,13 @@ export class AuthService {
   constructor(
     private router: Router,
     private http: HttpClient,
-    private storage: Storage // <-- iniettato direttamente
+    private storage: Storage
   ) {
     this.init();
   }
 
   private async init() {
-    await this.storage.create(); // inizializza lo storage
+    await this.storage.create();
   }
 
   async getSession() {
@@ -34,13 +34,18 @@ export class AuthService {
       .then(async (res: any) => {
         if (res.success && res.token) {
           await this.storage.set('auth_token', res.token);
+
+          if (res.user && res.user.id) {
+            await this.storage.set('user_id', res.user.id);
+
+          }
+
           return res;
         }
         throw new Error('Invalid credentials');
       });
   }
 
-  // Metodo per signup con backend PHP
   signUp(email: string, password: string) {
     return this.http.post('https://pannellogaleazzi.appnativeitalia.com/api/signup.php', { email, password })
       .toPromise()
@@ -50,7 +55,7 @@ export class AuthService {
   }
 
   async signOut() {
-    await this.storage.remove('auth_token');
+    await this.storage.clear();
     this.router.navigateByUrl('/signin');
   }
 }

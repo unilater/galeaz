@@ -38,10 +38,14 @@ const routes: Routes = [
     path: 'paypal',
     loadChildren: () => import('./pages/payment/paypal/paypal.module').then(m => m.PaypalPageModule)
   },
+  {
+    path: 'questionario',
+    loadChildren: () => import('./pages/public/questionario/questionario.module').then( m => m.QuestionarioPageModule)
+  },
 ];
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules, onSameUrlNavigation: 'reload' })
   ],
   exports: [RouterModule]
 })

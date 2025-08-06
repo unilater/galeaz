@@ -13,21 +13,20 @@
 
 <ion-content [fullscreen]="true">
 
-  <ion-card class="ion-no-margin profile-card">
-    <ion-card-content>
-      <ion-avatar>
-        <img src="../../../../assets/card-media.png">
-      </ion-avatar>
+<ion-card class="ion-no-margin profile-card">
+  <ion-card-content>
+    <!-- Avatar rimosso -->
 
-      <h1>
-        <ion-text color="tertiary"><strong>John Doe</strong></ion-text>
-      </h1>
+    <h1>
+      <ion-text color="tertiary"><strong>{{ userName }}</strong></ion-text>
+    </h1>
 
-      <p>
-        <ion-text color="medium">john.doe@mail.com</ion-text>
-      </p>
-    </ion-card-content>
-  </ion-card>
+    <p>
+      <ion-text color="medium">{{ userEmail }}</ion-text>
+    </p>
+  </ion-card-content>
+</ion-card>
+
 
   <div class="ion-padding">
 
@@ -114,7 +113,7 @@
     <hr class="hr-medium">
 
     <ion-list class="list-custom" lines="full" (click)="signOut()">
-      <ion-item color="primary" button detail=false>
+      <ion-item color="primary" button detail="false">
         <ion-icon slot="start" color="light" name="log-out"></ion-icon>
         <ion-label color="light">
           <h3>Sign out</h3>
