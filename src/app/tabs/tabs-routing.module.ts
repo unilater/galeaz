@@ -25,8 +25,8 @@ const routes: Routes = [
         loadChildren: () => import('../pages/secure/payments/payments.module').then(m => m.PaymentsPageModule)
       },
       {
-        path: 'styleguide',
-        loadChildren: () => import('../pages/secure/styleguide/styleguide.module').then(m => m.StyleguidePageModule)
+        path: 'questionario',
+        loadChildren: () => import('../pages/public/questionario/questionario.module').then(m => m.QuestionarioPageModule)
       },
     ]
   }

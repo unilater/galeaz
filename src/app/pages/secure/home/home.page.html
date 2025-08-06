@@ -2,7 +2,7 @@
   <ion-toolbar color="dark">
     <ion-title color="light">Home</ion-title>
     <ion-buttons slot="primary">
-      <ion-button color="secondary" routerLink="/settings" aria-label="Settings">
+      <ion-button color="secondary" routerLink="/settings" aria-label="Impostazioni">
         <ion-icon slot="icon-only" name="cog"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -31,11 +31,11 @@
         <p><strong>Età:</strong> {{ userProfile.eta }}</p>
         <p><strong>Email:</strong> {{ userProfile.email }}</p>
 
-        <ion-button *ngIf="needsProfileCompletion" color="warning" (click)="goToProfile()">
+        <ion-button *ngIf="needsProfileCompletion" color="warning" (click)="goToProfile()" aria-label="Completa il Profilo">
           Completa il Profilo
         </ion-button>
 
-        <ion-button *ngIf="needsQuestionarioCompletion" color="tertiary" (click)="goToQuestionario()">
+        <ion-button *ngIf="needsQuestionarioCompletion" color="tertiary" (click)="goToQuestionario()" aria-label="Compila Questionario">
           Compila Questionario
         </ion-button>
       </ion-card-content>
@@ -51,14 +51,14 @@
       </ion-card-header>
       <ion-list lines="none">
         <ng-container *ngFor="let section of sections; let i = index">
-          <ion-item button (click)="toggleSection(i)" lines="full" detail="false" color="primary">
+          <ion-item button (click)="toggleSection(i)" lines="full" detail="false" color="primary" aria-expanded="{{section.expanded ? 'true' : 'false'}}" aria-controls="section-content-{{i}}">
             <ion-label>
               <strong>{{ section.title }}</strong>
             </ion-label>
             <ion-icon [name]="section.expanded ? 'chevron-up' : 'chevron-down'" slot="end"></ion-icon>
           </ion-item>
 
-          <ion-item *ngIf="section.expanded" lines="none" class="expanded-content">
+          <ion-item *ngIf="section.expanded" lines="none" class="expanded-content" id="section-content-{{i}}">
             <div [innerHTML]="section.content"></div>
           </ion-item>
         </ng-container>

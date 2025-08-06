@@ -4,11 +4,13 @@ import { Router, NavigationEnd } from '@angular/router';
 import { ToastService } from 'src/app/services/toast/toast.service';
 import { Storage } from '@ionic/storage-angular';
 import { filter } from 'rxjs/operators';
+import { LoadingController } from '@ionic/angular';
 
 interface Section {
   title: string;
   content: string;
   expanded?: boolean;
+  key: string;
 }
 
 @Component({
@@ -19,6 +21,7 @@ interface Section {
 export class HomePage implements OnInit, OnDestroy {
 
   content_loaded = false;
+  showContent = false;
   userId: number | null = null;
 
   userProfile = {
@@ -31,14 +34,16 @@ export class HomePage implements OnInit, OnDestroy {
   datiPresenti = false;
 
   sections: Section[] = [
-    { title: 'Salute e Assistenza Sanitaria', content: `<ul><li>Agevolazioni per persone con diabete...</li></ul>` },
-    { title: 'Famiglia e Relazioni', content: `<ul><li>Assegni familiari...</li></ul>` },
-    { title: 'Lavoro e Reddito', content: `<ul><li>Sostegno al reddito per disoccupati...</li></ul>` },
-    { title: 'Casa e Alloggio', content: `<ul><li>Agevolazioni per affitti e mutui...</li></ul>` },
-    { title: 'Istruzione e Formazione', content: `<ul><li>Borse di studio...</li></ul>` },
-    { title: 'Diritti Legali e Previdenza', content: `<ul><li>Consulenza legale gratuita...</li></ul>` },
-    { title: 'Supporti e Servizi Sociali', content: `<ul><li>Centri di assistenza sociale...</li></ul>` }
+    { title: 'Salute e Assistenza Sanitaria', content: '', key: 'salute' },
+    { title: 'Famiglia e Relazioni', content: '', key: 'famiglia' },
+    { title: 'Lavoro e Reddito', content: '', key: 'lavoro' },
+    { title: 'Casa e Alloggio', content: '', key: 'casa' },
+    { title: 'Istruzione e Formazione', content: '', key: 'istruzione' },
+    { title: 'Diritti Legali e Previdenza', content: '', key: 'diritti_legali' },
+    { title: 'Supporti e Servizi Sociali', content: '', key: 'servizi_sociali' }
   ];
+
+  tuteleCompletamento: Record<string, boolean> = {};
 
   private routerSubscription: any;
 
@@ -46,7 +51,8 @@ export class HomePage implements OnInit, OnDestroy {
     private dataService: DataService,
     private router: Router,
     private toastService: ToastService,
-    private storage: Storage
+    private storage: Storage,
+    private loadingCtrl: LoadingController
   ) {}
 
   async ngOnInit() {
@@ -54,15 +60,24 @@ export class HomePage implements OnInit, OnDestroy {
     this.userId = await this.storage.get('user_id');
 
     if (!this.userId) {
-      this.toastService.presentToast('Error', 'User not logged in', 'top', 'danger', 3000);
+      this.toastService.presentToast('Errore', 'Utente non autenticato', 'top', 'danger', 3000);
       this.router.navigate(['/signin']);
       return;
     }
 
-    // Carica subito il profilo
-    this.loadUserProfile();
+    // Carica stato completamento questionario e tutele
+    this.dataService.getTuteleCompletamento(this.userId).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data) {
+          this.tuteleCompletamento = res.data;
+        }
+        this.loadUserProfile();
+      },
+      error: () => {
+        this.loadUserProfile();
+      }
+    });
 
-    // Sottoscrivi evento navigazione per ricaricare dati ogni volta che torni su /home
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
@@ -80,6 +95,8 @@ export class HomePage implements OnInit, OnDestroy {
 
   loadUserProfile() {
     this.content_loaded = false;
+    this.showContent = false; // Nascondi contenuti finché non verificato
+
     this.dataService.getProfile(this.userId!).subscribe({
       next: (res: any) => {
         if (res.success && res.user) {
@@ -90,11 +107,39 @@ export class HomePage implements OnInit, OnDestroy {
             email: res.user.email || ''
           };
           this.datiPresenti = this.userProfile.eta !== null && this.userProfile.eta !== undefined && this.userProfile.eta !== '';
+
+          if (this.needsQuestionarioCompletion) {
+            this.toastService.presentToast('Attenzione', 'Completa il questionario per visualizzare i contenuti.', 'top', 'warning', 4000);
+            this.content_loaded = true;
+            this.showContent = false;
+            return;
+          }
+
+          // Questionario completo, carica contenuti tutele
+          this.dataService.getTutele(this.userId!).subscribe({
+            next: (res2: any) => {
+              if (res2.success && res2.data) {
+                this.sections = this.sections.map(section => ({
+                  ...section,
+                  content: res2.data[section.key] || 'Nessuna informazione disponibile.'
+                }));
+              }
+              this.content_loaded = true;
+              this.showContent = true;
+            },
+            error: () => {
+              this.content_loaded = true;
+              this.showContent = true;
+            }
+          });
+        } else {
+          this.content_loaded = true;
+          this.showContent = false;
         }
-        this.content_loaded = true;
       },
       error: () => {
         this.content_loaded = true;
+        this.showContent = false;
       }
     });
   }
@@ -115,8 +160,33 @@ export class HomePage implements OnInit, OnDestroy {
     this.router.navigate(['/questionario']);
   }
 
-  toggleSection(index: number) {
-    this.sections[index].expanded = !this.sections[index].expanded;
-  }
+  async toggleSection(index: number) {
+    const section = this.sections[index];
+    section.expanded = !section.expanded;
 
+    if (section.expanded && !this.tuteleCompletamento[section.key]) {
+      const loading = await this.loadingCtrl.create({
+        message: `Aggiornamento ${section.title}...`,
+        spinner: 'crescent'
+      });
+      await loading.present();
+
+      this.dataService.updateColumn(this.userId!, section.key).subscribe({
+        next: async (res: any) => {
+          await loading.dismiss();
+
+          if (res.message) {
+            this.tuteleCompletamento[section.key] = true;
+            await this.dataService.setTutelaCompletata(this.userId!, section.key).toPromise();
+            section.content = res.content;
+            this.toastService.presentToast('Successo', `${section.title} aggiornata`, 'bottom', 'success', 2000);
+          }
+        },
+        error: async () => {
+          await loading.dismiss();
+          this.toastService.presentToast('Errore', `Errore aggiornamento ${section.title}`, 'bottom', 'danger', 3000);
+        }
+      });
+    }
+  }
 }
