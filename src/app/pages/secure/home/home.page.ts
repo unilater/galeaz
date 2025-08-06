@@ -65,24 +65,15 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
-    // Carica stato completamento questionario e tutele
-    this.dataService.getTuteleCompletamento(this.userId).subscribe({
-      next: (res: any) => {
-        if (res.success && res.data) {
-          this.tuteleCompletamento = res.data;
-        }
-        this.loadUserProfile();
-      },
-      error: () => {
-        this.loadUserProfile();
-      }
-    });
+    await this.loadTuteleCompletamento();
+    await this.loadUserProfile();
 
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
+    ).subscribe(async () => {
       if (this.router.url === '/home') {
-        this.loadUserProfile();
+        await this.loadTuteleCompletamento();
+        await this.loadUserProfile();
       }
     });
   }
@@ -93,9 +84,23 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  loadUserProfile() {
+  async loadTuteleCompletamento() {
+    return new Promise<void>((resolve) => {
+      this.dataService.getTuteleCompletamento(this.userId!).subscribe({
+        next: (res: any) => {
+          if (res.success && res.data) {
+            this.tuteleCompletamento = res.data;
+          }
+          resolve();
+        },
+        error: () => resolve()
+      });
+    });
+  }
+
+  async loadUserProfile() {
     this.content_loaded = false;
-    this.showContent = false; // Nascondi contenuti finché non verificato
+    this.showContent = false;
 
     this.dataService.getProfile(this.userId!).subscribe({
       next: (res: any) => {
@@ -115,7 +120,6 @@ export class HomePage implements OnInit, OnDestroy {
             return;
           }
 
-          // Questionario completo, carica contenuti tutele
           this.dataService.getTutele(this.userId!).subscribe({
             next: (res2: any) => {
               if (res2.success && res2.data) {

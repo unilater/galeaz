@@ -51,15 +51,16 @@
       </ion-card-header>
       <ion-list lines="none">
         <ng-container *ngFor="let section of sections; let i = index">
-          <ion-item button (click)="toggleSection(i)" lines="full" detail="false" color="primary" aria-expanded="{{section.expanded ? 'true' : 'false'}}" aria-controls="section-content-{{i}}">
+          <ion-item button (click)="toggleSection(i)" lines="full" detail="false" color="primary"
+            aria-expanded="{{section.expanded ? 'true' : 'false'}}" aria-controls="section-content-{{i}}" role="button" tabindex="0">
             <ion-label>
               <strong>{{ section.title }}</strong>
             </ion-label>
-            <ion-icon [name]="section.expanded ? 'chevron-up' : 'chevron-down'" slot="end"></ion-icon>
+            <ion-icon [name]="section.expanded ? 'chevron-up' : 'chevron-down'" slot="end" aria-hidden="true"></ion-icon>
           </ion-item>
 
-          <ion-item *ngIf="section.expanded" lines="none" class="expanded-content" id="section-content-{{i}}">
-            <div [innerHTML]="section.content"></div>
+          <ion-item *ngIf="section.expanded" lines="none" class="expanded-content" id="section-content-{{i}}" tabindex="0" role="region" aria-live="polite">
+            <div style="white-space: pre-wrap;">{{ section.content }}</div>
           </ion-item>
         </ng-container>
       </ion-list>
