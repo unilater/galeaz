@@ -17,8 +17,8 @@ const routes: Routes = [
         pathMatch: 'full'
       },
       {
-        path: 'charts',
-        loadChildren: () => import('../pages/secure/charts/charts.module').then(m => m.ChartsPageModule)
+        path: 'ai',
+        loadChildren: () => import('../pages/public/ai/ai.module').then(m => m.AiPageModule)
       },
       {
         path: 'payments',

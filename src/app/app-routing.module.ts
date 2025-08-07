@@ -42,6 +42,12 @@ const routes: Routes = [
     path: 'questionario',
     loadChildren: () => import('./pages/public/questionario/questionario.module').then( m => m.QuestionarioPageModule)
   },
+
+
+  {
+    path: 'ai',
+    loadChildren: () => import('./pages/public/ai/ai.module').then( m => m.AiPageModule)
+  },
 ];
 @NgModule({
   imports: [

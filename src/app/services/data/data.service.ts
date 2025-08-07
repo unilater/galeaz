@@ -51,4 +51,16 @@ export class DataService {
     });
   }
 
+  // =======================
+// Servizio per inizializzare AI con userId
+// =======================
+
+inizializzaAI(userId: number): Observable<any> {
+  // Assumendo che il backend accetti user_id come query param GET
+  return this.http.get(`${this.apiBaseUrl}/openai/inizializza.php?user_id=${userId}`, {
+    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+  });
+}
+
+
 }
