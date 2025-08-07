@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 // Definizione dell'interfaccia per la risposta AI Details
 interface AiDetailsResponse {
   success: boolean;
-  data: Record<string, string>;  // es. { salute: '<p>…</p>', famiglia: '<p>…</p>', … }
+  data: Record<string, string>;
 }
 
 @Injectable({
@@ -92,3 +92,4 @@ export class DataService {
     );
   }
 }
+

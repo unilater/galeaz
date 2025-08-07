@@ -63,27 +63,42 @@
     <!-- Skeleton menu mentre carica -->
     <ion-skeleton-text *ngIf="!content_loaded" animated style="width: 100%; height: 300px; border-radius: 8px; margin-top: 20px;"></ion-skeleton-text>
 
-    <!-- SEZIONI DIRITTI E AGEVOLAZIONI
-         MOSTRATE SOLO SE PROFILO E QUESTIONARIO COMPLETATI -->
+    <!-- SEZIONI DIRITTI E AGEVOLAZIONI -->
     <ion-card *ngIf="content_loaded && !needsProfileCompletion && !needsQuestionarioCompletion" class="animate__animated animate__fadeIn" style="margin-top: 20px;">
       <ion-card-header>
         <ion-card-title>Diritti e Agevolazioni</ion-card-title>
       </ion-card-header>
       <ion-list lines="none">
+
+        <!-- Ciclo dinamico sulle section -->
         <ng-container *ngFor="let section of sections; let i = index">
-          <ion-item button (click)="toggleSection(i)" lines="full" detail="false" color="primary"
-            aria-expanded="{{section.expanded ? 'true' : 'false'}}" aria-controls="section-content-{{i}}" role="button" tabindex="0">
+          <!-- Header item cliccabile -->
+          <ion-item button (click)="toggleSection(i)"
+                    lines="full"
+                    detail="false"
+                    color="primary"
+                    aria-expanded="{{ section.expanded ? 'true' : 'false' }}"
+                    aria-controls="section-content-{{i}}"
+                    role="button"
+                    tabindex="0">
             <ion-label>
               <strong>{{ section.title }}</strong>
             </ion-label>
             <ion-icon [name]="section.expanded ? 'chevron-up' : 'chevron-down'" slot="end" aria-hidden="true"></ion-icon>
           </ion-item>
 
-          <ion-item *ngIf="section.expanded" lines="none" class="expanded-content"
-            id="section-content-{{i}}" tabindex="0" role="region" aria-live="polite">
-            <div style="white-space: pre-wrap;">{{ section.content }}</div>
+          <!-- Contenuto, render HTML puro o placeholder -->
+          <ion-item *ngIf="section.expanded"
+                    lines="none"
+                    class="expanded-content"
+                    id="section-content-{{i}}"
+                    tabindex="0"
+                    role="region"
+                    aria-live="polite">
+            <div [innerHTML]="section.content"></div>
           </ion-item>
         </ng-container>
+
       </ion-list>
     </ion-card>
 

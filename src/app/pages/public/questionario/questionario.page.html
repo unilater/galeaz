@@ -10,31 +10,26 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <form [formGroup]="questionarioForm" (ngSubmit)="submit()">
+  <form *ngIf="questionarioForm" [formGroup]="questionarioForm" (ngSubmit)="submit()">
     <ion-list>
 
-      <!-- Ciclo dinamico per ogni domanda caricata -->
       <ng-container *ngFor="let q of questions">
 
-        <!-- Campo input numerico -->
         <ion-item *ngIf="q.tipo === 'number'">
           <ion-label position="floating">{{ q.testo_domanda }}</ion-label>
           <ion-input type="number" [formControlName]="q.id" [disabled]="isComplete"></ion-input>
         </ion-item>
 
-        <!-- Campo testo libero -->
         <ion-item *ngIf="q.tipo === 'testo_libero' || q.tipo === 'text'">
           <ion-label position="floating">{{ q.testo_domanda }}</ion-label>
           <ion-input type="text" [formControlName]="q.id" [disabled]="isComplete"></ion-input>
         </ion-item>
 
-        <!-- Campo textarea -->
         <ion-item *ngIf="q.tipo === 'textarea'">
           <ion-label position="floating">{{ q.testo_domanda }}</ion-label>
           <ion-textarea [formControlName]="q.id" [disabled]="isComplete"></ion-textarea>
         </ion-item>
 
-        <!-- Campo select -->
         <ion-item *ngIf="q.tipo === 'select'">
           <ion-label position="floating">{{ q.testo_domanda }}</ion-label>
           <ion-select [formControlName]="q.id" [disabled]="isComplete">
@@ -44,12 +39,14 @@
 
       </ng-container>
 
-      <!-- Bottone invia -->
       <ion-button expand="block" type="submit" [disabled]="questionarioForm.invalid || isComplete">
         Invia Questionario
       </ion-button>
 
     </ion-list>
   </form>
-</ion-content>
 
+  <!-- Debug form status e valori -->
+  <pre>Status: {{ questionarioForm?.status }}</pre>
+  <pre>Valori: {{ questionarioForm?.value | json }}</pre>
+</ion-content>

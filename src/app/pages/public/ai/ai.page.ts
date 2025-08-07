@@ -11,6 +11,8 @@ import { DataService } from 'src/app/services/data/data.service';
 export class AiPage {
 
   message: string | null = null;
+  aiResponse: any = null;
+  tuteleResponse: any = null;
   userId: number | null = null;
 
   constructor(
@@ -21,7 +23,6 @@ export class AiPage {
   ) {}
 
   async inizializzaAI() {
-    // Assicurati che storage sia pronto e prendi user_id
     await this.storage.create();
     this.userId = await this.storage.get('user_id');
 
@@ -42,9 +43,46 @@ export class AiPage {
 
         if (res.success) {
           this.message = 'Inizializzazione completata con successo!';
+          this.aiResponse = res.data;
           this.presentToast(this.message, 'success');
         } else {
           this.message = 'Errore: ' + (res.message || 'Problema durante l\'inizializzazione.');
+          this.presentToast(this.message, 'danger');
+        }
+      },
+      error: async () => {
+        await loading.dismiss();
+        this.message = 'Errore di rete o server non raggiungibile.';
+        this.presentToast(this.message, 'danger');
+      }
+    });
+  }
+
+  async attivaTutele() {
+    await this.storage.create();
+    this.userId = await this.storage.get('user_id');
+
+    if (!this.userId) {
+      this.presentToast('Errore: user_id non trovato', 'danger');
+      return;
+    }
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Attivazione tutele in corso...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
+    this.dataService.attivaTutele(this.userId).subscribe({
+      next: async (res: any) => {
+        await loading.dismiss();
+
+        if (res.success) {
+          this.message = 'Tutele attivate con successo!';
+          this.tuteleResponse = res.data;
+          this.presentToast(this.message, 'success');
+        } else {
+          this.message = 'Errore: ' + (res.message || 'Problema durante l\'attivazione tutele.');
           this.presentToast(this.message, 'danger');
         }
       },

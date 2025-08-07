@@ -1,8 +1,6 @@
 <ion-header collapse="fade" [translucent]="true">
   <ion-toolbar color="dark">
-    <ion-title color="light">
-      AI Initialization
-    </ion-title>
+    <ion-title color="light">AI Initialization</ion-title>
     <ion-buttons slot="primary">
       <ion-button color="secondary" routerLink="/settings" aria-label="Settings">
         <ion-icon slot="icon-only" name="cog"></ion-icon>
@@ -13,12 +11,14 @@
 
 <ion-content [fullscreen]="true" class="ion-padding">
 
-  <!-- Pulsante per attivare lo script PHP -->
   <ion-button expand="block" size="large" (click)="inizializzaAI()">
     Avvia Inizializzazione AI
   </ion-button>
 
-  <!-- Feedback messaggio -->
+  <ion-button expand="block" size="large" color="secondary" (click)="attivaTutele()" style="margin-top: 10px;">
+    Attiva Tutele
+  </ion-button>
+
   <div *ngIf="message" style="margin-top: 20px;">
     <ion-text color="primary">{{ message }}</ion-text>
   </div>

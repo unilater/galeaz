@@ -14,10 +14,10 @@ import { DataService } from 'src/app/services/data/data.service';
 })
 export class QuestionarioPage implements OnInit, OnDestroy {
 
-  questionarioForm: FormGroup;
+  questionarioForm: FormGroup = new FormGroup({});
   userId: number | null = null;
   isSubmitted = false;
-  isComplete = false;  // Sempre false, per ora non gestito
+  isComplete = false;
   questions: any[] = [];
   private routerSubscription: Subscription | null = null;
 
@@ -31,32 +31,30 @@ export class QuestionarioPage implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit() {
-    await this.initStorage();
+    await this.storage.create();
+
+    this.userId = await this.storage.get('user_id');
+    if (!this.userId) {
+      this.presentToast('Errore: user_id non trovato', 'danger');
+      this.router.navigate(['/signin']);
+      return;
+    }
 
     await this.loadDomande();
 
-    await this.loadUserIdAndData();
+    await this.loadUserData();
 
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
       if (this.router.url === '/questionario') {
-        this.loadUserIdAndData();
+        this.loadUserData();
       }
     });
   }
 
   ngOnDestroy() {
     if (this.routerSubscription) this.routerSubscription.unsubscribe();
-  }
-
-  private async initStorage() {
-    try {
-      await this.storage.create();
-    } catch (e) {
-      console.error('Errore creazione storage:', e);
-      await this.presentToast('Errore inizializzazione storage', 'danger');
-    }
   }
 
   private async loadDomande() {
@@ -70,62 +68,48 @@ export class QuestionarioPage implements OnInit, OnDestroy {
         if (res.success && res.data) {
           this.questions = res.data;
 
-          // Costruisci form dinamicamente con validatori
+          // Costruisci formGroup dinamico
           const group: { [key: string]: FormControl } = {};
           this.questions.forEach(q => {
             const validators = q.obbligatoria ? [Validators.required] : [];
             if (q.tipo === 'number') {
               validators.push(Validators.min(0));
             }
-            group[q.id] = new FormControl('', validators);
+            group[q.id.toString()] = new FormControl('', validators);
           });
+
           this.questionarioForm = new FormGroup(group);
         } else {
           this.presentToast('Errore nel caricamento domande', 'danger');
         }
       },
-      error: async () => {
-        await this.presentToast('Errore di rete durante caricamento domande', 'danger');
-      }
+      error: () => this.presentToast('Errore di rete durante caricamento domande', 'danger')
     });
   }
 
-  private async loadUserIdAndData() {
-    this.userId = await this.storage.get('user_id');
-    if (!this.userId) {
-      await this.presentToast('Errore: user_id non trovato', 'danger');
-      return;
-    }
-    await this.loadUserData();
-  }
-
   private async loadUserData() {
+    if (!this.userId) return;
+
     const loading = await this.loadingCtrl.create({ message: 'Caricamento dati...', spinner: 'crescent' });
     await loading.present();
 
-    this.dataService.getQuestionario(this.userId!).pipe(
+    this.dataService.getQuestionario(this.userId).pipe(
       finalize(() => loading.dismiss())
     ).subscribe({
       next: (res: any) => {
         if (res.success && res.data) {
-          // res.data contiene già l’oggetto completo delle risposte
           Object.keys(res.data).forEach(key => {
             if (this.questionarioForm.controls[key]) {
               this.questionarioForm.controls[key].patchValue(res.data[key]);
             }
           });
-
-          // Non gestiamo ancora isComplete
-          this.isComplete = false;
+          this.isComplete = false; // Gestione futura
           this.questionarioForm.enable();
-
         } else {
           this.presentToast('Nessun dato trovato', 'warning');
         }
       },
-      error: async () => {
-        await this.presentToast('Errore nel caricamento dei dati', 'danger');
-      }
+      error: () => this.presentToast('Errore nel caricamento dei dati', 'danger')
     });
   }
 
@@ -133,7 +117,7 @@ export class QuestionarioPage implements OnInit, OnDestroy {
     if (this.isSubmitted || this.isComplete) return;
 
     if (this.questionarioForm.invalid) {
-      await this.presentToast('Compila tutti i campi obbligatori correttamente', 'danger');
+      this.presentToast('Compila tutti i campi obbligatori correttamente', 'danger');
       return;
     }
 
@@ -156,7 +140,6 @@ export class QuestionarioPage implements OnInit, OnDestroy {
       next: async (res: any) => {
         if (res.success) {
           await this.presentToast('Dati inviati con successo!', 'success');
-          // isComplete rimane false finché non gestito altrove
         } else {
           await this.presentToast('Errore nell\'invio dei dati', 'danger');
         }
@@ -176,4 +159,5 @@ export class QuestionarioPage implements OnInit, OnDestroy {
     });
     await toast.present();
   }
+
 }
