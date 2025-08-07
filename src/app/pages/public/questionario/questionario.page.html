@@ -1,106 +1,55 @@
 <ion-header collapse="fade" [translucent]="true">
   <ion-toolbar color="dark">
-    <ion-buttons slot="start">
-      <ion-back-button color="secondary" text="Back" defaultHref="/home"></ion-back-button>
-    </ion-buttons>
     <ion-title color="light">Questionario Diritti Utente</ion-title>
+    <ion-buttons slot="primary">
+      <ion-button color="secondary" routerLink="/settings" aria-label="Settings">
+        <ion-icon slot="icon-only" name="cog"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="ion-padding">
+  <form [formGroup]="questionarioForm" (ngSubmit)="submit()">
+    <ion-list>
 
-    <form *ngIf="questionarioForm" [formGroup]="questionarioForm" (ngSubmit)="submit()">
+      <!-- Ciclo dinamico per ogni domanda caricata -->
+      <ng-container *ngFor="let q of questions">
 
-      <ion-list class="white-card" lines="full">
-
-        <ion-list-header class="ion-list-header-small">
-          <ion-label>
-            <ion-text color="tertiary">Informazioni Personali</ion-text>
-          </ion-label>
-        </ion-list-header>
-
-        <ion-item>
-          <ion-label position="floating">Età</ion-label>
-          <ion-input type="number" formControlName="eta" required></ion-input>
+        <!-- Campo input numerico -->
+        <ion-item *ngIf="q.tipo === 'number'">
+          <ion-label position="floating">{{ q.testo_domanda }}</ion-label>
+          <ion-input type="number" [formControlName]="q.id" [disabled]="isComplete"></ion-input>
         </ion-item>
 
-        <ion-item>
-          <ion-label position="floating">Sesso</ion-label>
-          <ion-select formControlName="sesso" placeholder="Seleziona sesso" required>
-            <ion-select-option value="Maschio">Maschio</ion-select-option>
-            <ion-select-option value="Femmina">Femmina</ion-select-option>
-            <ion-select-option value="Altro">Altro</ion-select-option>
+        <!-- Campo testo libero -->
+        <ion-item *ngIf="q.tipo === 'testo_libero' || q.tipo === 'text'">
+          <ion-label position="floating">{{ q.testo_domanda }}</ion-label>
+          <ion-input type="text" [formControlName]="q.id" [disabled]="isComplete"></ion-input>
+        </ion-item>
+
+        <!-- Campo textarea -->
+        <ion-item *ngIf="q.tipo === 'textarea'">
+          <ion-label position="floating">{{ q.testo_domanda }}</ion-label>
+          <ion-textarea [formControlName]="q.id" [disabled]="isComplete"></ion-textarea>
+        </ion-item>
+
+        <!-- Campo select -->
+        <ion-item *ngIf="q.tipo === 'select'">
+          <ion-label position="floating">{{ q.testo_domanda }}</ion-label>
+          <ion-select [formControlName]="q.id" [disabled]="isComplete">
+            <ion-select-option *ngFor="let opt of q.opzioni" [value]="opt">{{ opt }}</ion-select-option>
           </ion-select>
         </ion-item>
 
-        <ion-item>
-          <ion-label position="floating">Stato Civile</ion-label>
-          <ion-select formControlName="statoCivile" placeholder="Seleziona stato civile" required>
-            <ion-select-option value="Celibe/Nubile">Celibe/Nubile</ion-select-option>
-            <ion-select-option value="Sposato/a">Sposato/a</ion-select-option>
-            <ion-select-option value="Divorziato/a">Divorziato/a</ion-select-option>
-            <ion-select-option value="Vedovo/a">Vedovo/a</ion-select-option>
-          </ion-select>
-        </ion-item>
+      </ng-container>
 
-        <ion-item>
-          <ion-label position="floating">Numero di Figli</ion-label>
-          <ion-input type="number" formControlName="figli" min="0" required></ion-input>
-        </ion-item>
-
-        <ion-item>
-          <ion-label position="floating">Patologie</ion-label>
-          <ion-textarea formControlName="patologie" placeholder="Inserisci patologie rilevanti"></ion-textarea>
-        </ion-item>
-
-        <ion-item>
-          <ion-label position="floating">Occupazione</ion-label>
-          <ion-input formControlName="lavoro" placeholder="Inserisci occupazione" required></ion-input>
-        </ion-item>
-
-        <ion-list-header class="ion-list-header-small ion-margin-top">
-          <ion-label>
-            <ion-text color="tertiary">Informazioni Famiglia e Patrimonio</ion-text>
-          </ion-label>
-        </ion-list-header>
-
-        <ion-item>
-          <ion-label position="floating">Stato Patrimoniale</ion-label>
-          <ion-input formControlName="statoPatrimoniale" placeholder="Breve descrizione"></ion-input>
-        </ion-item>
-
-        <ion-item>
-          <ion-label>Presenza Testamento</ion-label>
-          <ion-toggle formControlName="presenzaTestamento"></ion-toggle>
-        </ion-item>
-
-        <ion-item>
-          <ion-label>Regime Matrimoniale: Comunione dei beni</ion-label>
-          <ion-toggle formControlName="coniugatoInComunione"></ion-toggle>
-        </ion-item>
-
-        <ion-item>
-          <ion-label position="floating">Numero Eredi</ion-label>
-          <ion-input type="number" formControlName="numeroEredi" min="0"></ion-input>
-        </ion-item>
-
-        <ion-item>
-          <ion-label>Presenza Figli Minori</ion-label>
-          <ion-toggle formControlName="presenzaFigliMinori"></ion-toggle>
-        </ion-item>
-
-        <ion-item>
-          <ion-label position="floating">Tutela Legale per Minori (se presente)</ion-label>
-          <ion-textarea formControlName="tutelaMinori" placeholder="Dettagli o note"></ion-textarea>
-        </ion-item>
-
-      </ion-list>
-
-      <ion-button expand="block" type="submit" [disabled]="questionarioForm.invalid" class="ion-margin-top">
+      <!-- Bottone invia -->
+      <ion-button expand="block" type="submit" [disabled]="questionarioForm.invalid || isComplete">
         Invia Questionario
       </ion-button>
 
-    </form>
-  </div>
+    </ion-list>
+  </form>
 </ion-content>
+

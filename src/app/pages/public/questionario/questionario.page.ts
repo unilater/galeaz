@@ -1,219 +1,179 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { ToastController, LoadingController } from '@ionic/angular';
-import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { Storage } from '@ionic/storage-angular';
+import { Subscription } from 'rxjs';
+import { filter, finalize } from 'rxjs/operators';
+import { DataService } from 'src/app/services/data/data.service';
 
 @Component({
   selector: 'app-questionario',
   templateUrl: './questionario.page.html',
   styleUrls: ['./questionario.page.scss'],
 })
-export class QuestionarioPage implements OnInit {
+export class QuestionarioPage implements OnInit, OnDestroy {
 
   questionarioForm: FormGroup;
-  apiUrl = 'https://pannellogaleazzi.appnativeitalia.com/api/questionario.php';
-  scriviTuteleUrl = 'https://pannellogaleazzi.appnativeitalia.com/api/scrivi_tutele.php';
   userId: number | null = null;
+  isSubmitted = false;
+  isComplete = false;  // Sempre false, per ora non gestito
+  questions: any[] = [];
+  private routerSubscription: Subscription | null = null;
 
   constructor(
     private fb: FormBuilder,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
-    private http: HttpClient,
     private router: Router,
-    private storage: Storage
+    private storage: Storage,
+    private dataService: DataService
   ) {}
 
-  ngOnInit() {
-    this.init();
+  async ngOnInit() {
+    await this.initStorage();
+
+    await this.loadDomande();
+
+    await this.loadUserIdAndData();
+
+    this.routerSubscription = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      if (this.router.url === '/questionario') {
+        this.loadUserIdAndData();
+      }
+    });
   }
 
-  async init() {
-    await this.storage.create();
-    this.userId = await this.storage.get('user_id');
+  ngOnDestroy() {
+    if (this.routerSubscription) this.routerSubscription.unsubscribe();
+  }
 
-    this.questionarioForm = this.fb.group({
-      eta: ['', [Validators.required, Validators.min(0), Validators.max(120)]],
-      sesso: ['', Validators.required],
-      statoCivile: ['', Validators.required],
-      figli: [0, [Validators.required, Validators.min(0)]],
-      patologie: [''],
-      lavoro: ['', Validators.required],
-      // Nuovi campi utili per diritto famiglia
-      statoPatrimoniale: ['', Validators.required],
-      presenzaTestamento: [false],
-      coniugatoInComunione: [false],
-      numeroEredi: [0, [Validators.min(0)]],
-      presenzaFigliMinori: [false],
-      tutelaMinori: [''],  // eventuale tutela legale specifica
-    });
-
-    if (this.userId) {
-      this.loadUserData();
+  private async initStorage() {
+    try {
+      await this.storage.create();
+    } catch (e) {
+      console.error('Errore creazione storage:', e);
+      await this.presentToast('Errore inizializzazione storage', 'danger');
     }
   }
 
-  capitalizeFirstLetter(str: string): string {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  }
-
-  async loadUserData() {
-    const loading = await this.loadingCtrl.create({
-      message: 'Caricamento dati...',
-      spinner: 'crescent'
-    });
+  private async loadDomande() {
+    const loading = await this.loadingCtrl.create({ message: 'Caricamento domande...', spinner: 'crescent' });
     await loading.present();
 
-    this.http.get(`${this.apiUrl}?user_id=${this.userId}`).subscribe({
-      next: async (res: any) => {
-        await loading.dismiss();
+    this.dataService.getDomandeQuestionario().pipe(
+      finalize(() => loading.dismiss())
+    ).subscribe({
+      next: (res: any) => {
         if (res.success && res.data) {
-          this.questionarioForm.patchValue({
-            eta: res.data.eta,
-            sesso: this.capitalizeFirstLetter(res.data.sesso),
-            statoCivile: this.capitalizeFirstLetter(res.data.statoCivile),
-            figli: res.data.figli,
-            patologie: res.data.patologie,
-            lavoro: res.data.lavoro,
-            // Se esistono nel backend, caricali pure qui:
-            statoPatrimoniale: res.data.statoPatrimoniale ?? '',
-            presenzaTestamento: res.data.presenzaTestamento ?? false,
-            coniugatoInComunione: res.data.coniugatoInComunione ?? false,
-            numeroEredi: res.data.numeroEredi ?? 0,
-            presenzaFigliMinori: res.data.presenzaFigliMinori ?? false,
-            tutelaMinori: res.data.tutelaMinori ?? ''
+          this.questions = res.data;
+
+          // Costruisci form dinamicamente con validatori
+          const group: { [key: string]: FormControl } = {};
+          this.questions.forEach(q => {
+            const validators = q.obbligatoria ? [Validators.required] : [];
+            if (q.tipo === 'number') {
+              validators.push(Validators.min(0));
+            }
+            group[q.id] = new FormControl('', validators);
           });
+          this.questionarioForm = new FormGroup(group);
         } else {
-          const toast = await this.toastCtrl.create({
-            message: 'Nessun dato trovato o errore nel caricamento',
-            duration: 3000,
-            color: 'warning',
-            position: 'top'
-          });
-          await toast.present();
+          this.presentToast('Errore nel caricamento domande', 'danger');
         }
       },
-      error: async (err) => {
-        await loading.dismiss();
-        const toast = await this.toastCtrl.create({
-          message: 'Errore nel caricamento dei dati',
-          duration: 3000,
-          color: 'danger',
-          position: 'top'
-        });
-        await toast.present();
+      error: async () => {
+        await this.presentToast('Errore di rete durante caricamento domande', 'danger');
+      }
+    });
+  }
+
+  private async loadUserIdAndData() {
+    this.userId = await this.storage.get('user_id');
+    if (!this.userId) {
+      await this.presentToast('Errore: user_id non trovato', 'danger');
+      return;
+    }
+    await this.loadUserData();
+  }
+
+  private async loadUserData() {
+    const loading = await this.loadingCtrl.create({ message: 'Caricamento dati...', spinner: 'crescent' });
+    await loading.present();
+
+    this.dataService.getQuestionario(this.userId!).pipe(
+      finalize(() => loading.dismiss())
+    ).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data) {
+          // res.data contiene già l’oggetto completo delle risposte
+          Object.keys(res.data).forEach(key => {
+            if (this.questionarioForm.controls[key]) {
+              this.questionarioForm.controls[key].patchValue(res.data[key]);
+            }
+          });
+
+          // Non gestiamo ancora isComplete
+          this.isComplete = false;
+          this.questionarioForm.enable();
+
+        } else {
+          this.presentToast('Nessun dato trovato', 'warning');
+        }
+      },
+      error: async () => {
+        await this.presentToast('Errore nel caricamento dei dati', 'danger');
       }
     });
   }
 
   async submit() {
+    if (this.isSubmitted || this.isComplete) return;
+
     if (this.questionarioForm.invalid) {
-      const toast = await this.toastCtrl.create({
-        message: 'Compila tutti i campi obbligatori correttamente',
-        duration: 3000,
-        color: 'danger',
-        position: 'top'
-      });
-      await toast.present();
+      await this.presentToast('Compila tutti i campi obbligatori correttamente', 'danger');
       return;
     }
 
-    if (!this.userId) {
-      const toast = await this.toastCtrl.create({
-        message: 'Utente non autenticato, esegui il login',
-        duration: 3000,
-        color: 'danger',
-        position: 'top'
-      });
-      await toast.present();
-      return;
-    }
+    this.isSubmitted = true;
 
-    const loading = await this.loadingCtrl.create({
-      message: 'Invio dati...',
-      spinner: 'crescent'
-    });
+    const loading = await this.loadingCtrl.create({ message: 'Invio dati...', spinner: 'crescent' });
     await loading.present();
 
     const payload = {
       user_id: this.userId,
-      ...this.questionarioForm.value
+      questionario: this.questionarioForm.value
     };
 
-    this.http.post(this.apiUrl, payload).subscribe({
+    this.dataService.postQuestionario(payload).pipe(
+      finalize(() => {
+        loading.dismiss();
+        this.isSubmitted = false;
+      })
+    ).subscribe({
       next: async (res: any) => {
-        if (!res || !res.success) {
-          await loading.dismiss();
-          const toast = await this.toastCtrl.create({
-            message: res?.message || 'Errore durante l\'invio',
-            duration: 3000,
-            color: 'danger',
-            position: 'top'
-          });
-          await toast.present();
-          return;
+        if (res.success) {
+          await this.presentToast('Dati inviati con successo!', 'success');
+          // isComplete rimane false finché non gestito altrove
+        } else {
+          await this.presentToast('Errore nell\'invio dei dati', 'danger');
         }
-
-        const loadingTutele = await this.loadingCtrl.create({
-          message: 'Salvataggio tutele...',
-          spinner: 'crescent'
-        });
-        await loadingTutele.present();
-
-        this.http.get(`${this.scriviTuteleUrl}?user_id=${this.userId}`).subscribe({
-          next: async (res2: any) => {
-            await loading.dismiss();
-            await loadingTutele.dismiss();
-
-            if (res2?.error) {
-              const toast = await this.toastCtrl.create({
-                message: 'Errore nel salvataggio delle tutele: ' + res2.error,
-                duration: 4000,
-                color: 'danger',
-                position: 'top'
-              });
-              await toast.present();
-              return;
-            }
-
-            const toast = await this.toastCtrl.create({
-              message: 'Questionario e tutele salvati con successo!',
-              duration: 3000,
-              color: 'success',
-              position: 'top'
-            });
-            await toast.present();
-
-            await this.storage.set('questionario_completo', true);
-            this.router.navigate(['/home']);
-          },
-          error: async () => {
-            await loading.dismiss();
-            await loadingTutele.dismiss();
-            const toast = await this.toastCtrl.create({
-              message: 'Errore nel salvataggio delle tutele',
-              duration: 3000,
-              color: 'danger',
-              position: 'top'
-            });
-            await toast.present();
-          }
-        });
       },
       error: async () => {
-        await loading.dismiss();
-        const toast = await this.toastCtrl.create({
-          message: 'Errore di rete, riprova più tardi',
-          duration: 3000,
-          color: 'danger',
-          position: 'top'
-        });
-        await toast.present();
+        await this.presentToast('Errore di rete, riprova più tardi', 'danger');
       }
     });
   }
 
+  private async presentToast(message: string, color: 'success' | 'danger' | 'warning') {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'top'
+    });
+    await toast.present();
+  }
 }

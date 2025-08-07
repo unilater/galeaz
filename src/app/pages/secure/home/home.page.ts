@@ -4,7 +4,6 @@ import { Router, NavigationEnd } from '@angular/router';
 import { ToastService } from 'src/app/services/toast/toast.service';
 import { Storage } from '@ionic/storage-angular';
 import { filter } from 'rxjs/operators';
-import { LoadingController } from '@ionic/angular';
 
 interface Section {
   title: string;
@@ -27,23 +26,20 @@ export class HomePage implements OnInit, OnDestroy {
   userProfile = {
     name_first: '',
     name_last: '',
-    eta: null,
     email: ''
   };
 
-  datiPresenti = false;
+  questionarioCompletato = false;
 
   sections: Section[] = [
-    { title: 'Salute e Assistenza Sanitaria', content: '', key: 'salute' },
-    { title: 'Famiglia e Relazioni', content: '', key: 'famiglia' },
-    { title: 'Lavoro e Reddito', content: '', key: 'lavoro' },
-    { title: 'Casa e Alloggio', content: '', key: 'casa' },
-    { title: 'Istruzione e Formazione', content: '', key: 'istruzione' },
-    { title: 'Diritti Legali e Previdenza', content: '', key: 'diritti_legali' },
-    { title: 'Supporti e Servizi Sociali', content: '', key: 'servizi_sociali' }
+    { title: 'Salute e Assistenza Sanitaria', content: 'Contenuto fittizio per la sezione Salute e Assistenza Sanitaria.', key: 'salute' },
+    { title: 'Famiglia e Relazioni', content: 'Contenuto fittizio per la sezione Famiglia e Relazioni.', key: 'famiglia' },
+    { title: 'Lavoro e Reddito', content: 'Contenuto fittizio per la sezione Lavoro e Reddito.', key: 'lavoro' },
+    { title: 'Casa e Alloggio', content: 'Contenuto fittizio per la sezione Casa e Alloggio.', key: 'casa' },
+    { title: 'Istruzione e Formazione', content: 'Contenuto fittizio per la sezione Istruzione e Formazione.', key: 'istruzione' },
+    { title: 'Diritti Legali e Previdenza', content: 'Contenuto fittizio per la sezione Diritti Legali e Previdenza.', key: 'diritti_legali' },
+    { title: 'Supporti e Servizi Sociali', content: 'Contenuto fittizio per la sezione Supporti e Servizi Sociali.', key: 'servizi_sociali' }
   ];
-
-  tuteleCompletamento: Record<string, boolean> = {};
 
   private routerSubscription: any;
 
@@ -51,8 +47,7 @@ export class HomePage implements OnInit, OnDestroy {
     private dataService: DataService,
     private router: Router,
     private toastService: ToastService,
-    private storage: Storage,
-    private loadingCtrl: LoadingController
+    private storage: Storage
   ) {}
 
   async ngOnInit() {
@@ -65,14 +60,12 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
-    await this.loadTuteleCompletamento();
     await this.loadUserProfile();
 
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(async () => {
       if (this.router.url === '/home') {
-        await this.loadTuteleCompletamento();
         await this.loadUserProfile();
       }
     });
@@ -82,20 +75,6 @@ export class HomePage implements OnInit, OnDestroy {
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe();
     }
-  }
-
-  async loadTuteleCompletamento() {
-    return new Promise<void>((resolve) => {
-      this.dataService.getTuteleCompletamento(this.userId!).subscribe({
-        next: (res: any) => {
-          if (res.success && res.data) {
-            this.tuteleCompletamento = res.data;
-          }
-          resolve();
-        },
-        error: () => resolve()
-      });
-    });
   }
 
   async loadUserProfile() {
@@ -108,46 +87,24 @@ export class HomePage implements OnInit, OnDestroy {
           this.userProfile = {
             name_first: res.user.name_first || '',
             name_last: res.user.name_last || '',
-            eta: res.user.eta || null,
             email: res.user.email || ''
           };
 
-          this.datiPresenti = this.userProfile.eta !== null && this.userProfile.eta !== undefined && this.userProfile.eta !== '';
-
-          if (this.needsQuestionarioCompletion) {
-            this.toastService.presentToast('Attenzione', 'Completa il questionario per visualizzare i contenuti.', 'top', 'warning', 4000);
-            this.content_loaded = true;
-            this.showContent = false;
-            return;
+          let questionarioData = {};
+          if (res.user.questionario_data) {
+            try {
+              questionarioData = typeof res.user.questionario_data === 'string' ?
+                JSON.parse(res.user.questionario_data) : res.user.questionario_data;
+            } catch {
+              questionarioData = {};
+            }
           }
 
-          this.dataService.getTutele(this.userId!).subscribe({
-            next: (res2: any) => {
-              console.log("Risposta tutele:", res2); // Log della risposta delle tutele
+          // Considera completato se c'è almeno una chiave in questionario_data
+          this.questionarioCompletato = Object.keys(questionarioData).length > 0;
 
-              if (res2.success && res2.data) {
-                // Mappa i dati nelle sezioni in base ai nomi delle chiavi
-                this.sections = this.sections.map(section => {
-                  const content = res2.data[section.key] || 'Nessuna informazione disponibile.'; // Messaggio di fallback
-                  console.log(`Mappatura sezione ${section.key}: ${content}`);  // Log della mappatura
-                  return {
-                    ...section,
-                    content: content
-                  };
-                });
-                console.log("Sezioni aggiornate:", this.sections);  // Log delle sezioni aggiornate
-              } else {
-                console.log("Dati tutele non trovati.");
-              }
-
-              this.content_loaded = true;
-              this.showContent = true;
-            },
-            error: () => {
-              this.content_loaded = true;
-              this.showContent = true;
-            }
-          });
+          this.content_loaded = true;
+          this.showContent = true;
         } else {
           this.content_loaded = true;
           this.showContent = false;
@@ -165,7 +122,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   get needsQuestionarioCompletion(): boolean {
-    return !this.needsProfileCompletion && !this.datiPresenti;
+    return !this.needsProfileCompletion && !this.questionarioCompletato;
   }
 
   goToProfile() {
@@ -176,33 +133,8 @@ export class HomePage implements OnInit, OnDestroy {
     this.router.navigate(['/questionario']);
   }
 
-  async toggleSection(index: number) {
-    const section = this.sections[index];
-    section.expanded = !section.expanded;
-
-    if (section.expanded && !this.tuteleCompletamento[section.key]) {
-      const loading = await this.loadingCtrl.create({
-        message: `Aggiornamento ${section.title}...`,
-        spinner: 'crescent'
-      });
-      await loading.present();
-
-      this.dataService.updateColumn(this.userId!, section.key).subscribe({
-        next: async (res: any) => {
-          await loading.dismiss();
-
-          if (res.message) {
-            this.tuteleCompletamento[section.key] = true;
-            await this.dataService.setTutelaCompletata(this.userId!, section.key).toPromise();
-            section.content = res.content;
-            this.toastService.presentToast('Successo', `${section.title} aggiornata`, 'bottom', 'success', 2000);
-          }
-        },
-        error: async () => {
-          await loading.dismiss();
-          this.toastService.presentToast('Errore', `Errore aggiornamento ${section.title}`, 'bottom', 'danger', 3000);
-        }
-      });
-    }
+  toggleSection(index: number) {
+    this.sections[index].expanded = !this.sections[index].expanded;
   }
+
 }
