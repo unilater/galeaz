@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
+import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { Router, NavigationEnd } from '@angular/router';
 import { Storage } from '@ionic/storage-angular';
@@ -22,7 +22,6 @@ export class QuestionarioPage implements OnInit, OnDestroy {
   private routerSubscription: Subscription | null = null;
 
   constructor(
-    private fb: FormBuilder,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
     private router: Router,
@@ -32,7 +31,6 @@ export class QuestionarioPage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.storage.create();
-
     this.userId = await this.storage.get('user_id');
     if (!this.userId) {
       this.presentToast('Errore: user_id non trovato', 'danger');
@@ -41,24 +39,26 @@ export class QuestionarioPage implements OnInit, OnDestroy {
     }
 
     await this.loadDomande();
-
     await this.loadUserData();
 
-    this.routerSubscription = this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      if (this.router.url === '/questionario') {
-        this.loadUserData();
-      }
-    });
+    this.routerSubscription = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        if (this.router.url === '/questionario') {
+          this.loadUserData();
+        }
+      });
   }
 
   ngOnDestroy() {
-    if (this.routerSubscription) this.routerSubscription.unsubscribe();
+    this.routerSubscription?.unsubscribe();
   }
 
   private async loadDomande() {
-    const loading = await this.loadingCtrl.create({ message: 'Caricamento domande...', spinner: 'crescent' });
+    const loading = await this.loadingCtrl.create({
+      message: 'Caricamento domande...',
+      spinner: 'crescent'
+    });
     await loading.present();
 
     this.dataService.getDomandeQuestionario().pipe(
@@ -66,7 +66,8 @@ export class QuestionarioPage implements OnInit, OnDestroy {
     ).subscribe({
       next: (res: any) => {
         if (res.success && res.data) {
-          this.questions = res.data;
+          // ORDINA PER id CRESCENTE
+          this.questions = res.data.sort((a: any, b: any) => a.id - b.id);
 
           // Costruisci formGroup dinamico
           const group: { [key: string]: FormControl } = {};
@@ -77,7 +78,6 @@ export class QuestionarioPage implements OnInit, OnDestroy {
             }
             group[q.id.toString()] = new FormControl('', validators);
           });
-
           this.questionarioForm = new FormGroup(group);
         } else {
           this.presentToast('Errore nel caricamento domande', 'danger');
@@ -90,7 +90,10 @@ export class QuestionarioPage implements OnInit, OnDestroy {
   private async loadUserData() {
     if (!this.userId) return;
 
-    const loading = await this.loadingCtrl.create({ message: 'Caricamento dati...', spinner: 'crescent' });
+    const loading = await this.loadingCtrl.create({
+      message: 'Caricamento dati...',
+      spinner: 'crescent'
+    });
     await loading.present();
 
     this.dataService.getQuestionario(this.userId).pipe(
@@ -103,7 +106,7 @@ export class QuestionarioPage implements OnInit, OnDestroy {
               this.questionarioForm.controls[key].patchValue(res.data[key]);
             }
           });
-          this.isComplete = false; // Gestione futura
+          this.isComplete = false;
           this.questionarioForm.enable();
         } else {
           this.presentToast('Nessun dato trovato', 'warning');
@@ -115,15 +118,16 @@ export class QuestionarioPage implements OnInit, OnDestroy {
 
   async submit() {
     if (this.isSubmitted || this.isComplete) return;
-
     if (this.questionarioForm.invalid) {
       this.presentToast('Compila tutti i campi obbligatori correttamente', 'danger');
       return;
     }
 
     this.isSubmitted = true;
-
-    const loading = await this.loadingCtrl.create({ message: 'Invio dati...', spinner: 'crescent' });
+    const loading = await this.loadingCtrl.create({
+      message: 'Invio dati...',
+      spinner: 'crescent'
+    });
     await loading.present();
 
     const payload = {
@@ -150,7 +154,10 @@ export class QuestionarioPage implements OnInit, OnDestroy {
     });
   }
 
-  private async presentToast(message: string, color: 'success' | 'danger' | 'warning') {
+  private async presentToast(
+    message: string,
+    color: 'success' | 'danger' | 'warning'
+  ) {
     const toast = await this.toastCtrl.create({
       message,
       duration: 3000,

@@ -1,11 +1,9 @@
 <ion-header collapse="fade" [translucent]="true">
   <ion-toolbar color="dark">
-    <ion-title color="light">Questionario Diritti Utente</ion-title>
-    <ion-buttons slot="primary">
-      <ion-button color="secondary" routerLink="/settings" aria-label="Settings">
-        <ion-icon slot="icon-only" name="cog"></ion-icon>
-      </ion-button>
+    <ion-buttons slot="start">
+      <ion-back-button color="secondary" text="Home" defaultHref="/home"></ion-back-button>
     </ion-buttons>
+    <ion-title color="light">Impostazioni</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -46,7 +44,5 @@
     </ion-list>
   </form>
 
-  <!-- Debug form status e valori -->
-  <pre>Status: {{ questionarioForm?.status }}</pre>
-  <pre>Valori: {{ questionarioForm?.value | json }}</pre>
+
 </ion-content>
