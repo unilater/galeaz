@@ -12,14 +12,7 @@ const routes: Routes = [
     path: 'account',
     loadChildren: () => import('./account/account.module').then( m => m.AccountPageModule)
   },
-  {
-    path: 'devices',
-    loadChildren: () => import('./devices/devices.module').then( m => m.DevicesPageModule)
-  },
-  {
-    path: 'backups',
-    loadChildren: () => import('./backups/backups.module').then( m => m.BackupsPageModule)
-  }
+
 ];
 
 @NgModule({

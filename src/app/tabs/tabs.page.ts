@@ -16,30 +16,25 @@ export class TabsPage {
   async selectAction() {
 
     const actionSheet = await this.actionSheetController.create({
-      header: 'Choose an action',
+      header: 'Scegli Azione',
       cssClass: 'custom-action-sheet',
       buttons: [
         {
-          text: 'Add something',
+          text: 'Eventuale Menu',
           icon: 'wallet',
           handler: () => {
             // Put in logic ...
           }
         },
         {
-          text: 'Change something',
+          text: 'Altro Menu',
           icon: 'swap-horizontal-outline',
           handler: () => {
             // Put in logic ...
           }
         },
-        {
-          text: 'Set something',
-          icon: 'calculator',
-          handler: () => {
-            // Put in logic ...
-          }
-        }, {
+
+       {
           text: 'Cancel',
           icon: 'close',
           role: 'cancel'

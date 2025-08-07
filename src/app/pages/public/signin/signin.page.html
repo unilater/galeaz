@@ -2,7 +2,7 @@
   <ion-toolbar color="dark">
     <ion-buttons slot="end">
       <ion-button color="secondary" routerLink="/signup">
-        Sign up
+        Registrati
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -14,14 +14,14 @@
 
     <div class="logo-container">
       <h1 class="animate__animated animate__fadeInUp">
-        <ion-text color="light">Sign In</ion-text>
+        <ion-text color="light">Accedi</ion-text>
       </h1>
       <p class="animate__animated animate__fadeInUp">
-        <ion-text color="secondary">Login to your account.</ion-text>
+        <ion-text color="secondary">Accedi al tuo account.</ion-text>
       </p>
     </div>
 
-    <!-- Login form -->
+    <!-- Form di accesso -->
     <form class="form-default" [formGroup]="signin_form" (submit)="signIn()">
       <ion-item color="dark" class="animate__animated animate__fadeInUp">
         <ion-label position="floating">
@@ -36,21 +36,21 @@
           <ion-icon name="lock-closed-outline"></ion-icon>
           Password
         </ion-label>
-        <ion-input color="secondary" formControlName="password" type="password" placeholder="Your password"></ion-input>
+        <ion-input color="secondary" formControlName="password" type="password" placeholder="La tua password"></ion-input>
       </ion-item>
 
       <ion-button class="ion-margin-top" type="submit" expand="block" size="large" color="secondary">
-        Sign in
+        Accedi
       </ion-button>
 
       <ion-button color="light" fill="clear" expand="block" class="ion-button-small ion-margin-top-medium" routerLink="/password-reset">
-        Forgot password?
+        Password dimenticata?
       </ion-button>
     </form>
 
     <div class="ion-text-center ion-margin-top">
       <ion-text color="medium">
-        <small>&copy;{{current_year}} Firmino.dev</small>
+        <small>&copy;{{current_year}} Tutti i tuoi diritti di famiglia</small>
       </ion-text>
     </div>
 

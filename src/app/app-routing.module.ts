@@ -9,11 +9,7 @@ const routes: Routes = [
     redirectTo: 'welcome', // TODO: Set this to ''
     pathMatch: 'full'
   },
-  {
-    path: '',
-    loadChildren: () => import('./pages/secure/secure.module').then(m => m.SecureModule),
-    // canActivate: [AuthGuard] // Secure all child pages
-  },
+
   {
     path: 'welcome',
     loadChildren: () => import('./pages/public/welcome/welcome.module').then(m => m.WelcomePageModule),
@@ -42,7 +38,11 @@ const routes: Routes = [
     path: 'questionario',
     loadChildren: () => import('./pages/public/questionario/questionario.module').then( m => m.QuestionarioPageModule)
   },
-
+  {
+    path: '',
+    loadChildren: () => import('./pages/secure/secure.module').then(m => m.SecureModule),
+    // canActivate: [AuthGuard] // Secure all child pages
+  },
 
   {
     path: 'ai',

@@ -1,51 +1,57 @@
 :host {
   ion-card {
-    background-color: #1e2a47; /* blu scuro coerente con toolbar */
-    color: #ffffff; /* testo bianco per contrasto */
-    border: 1px solid #2f3e68; /* bordo sottile più chiaro */
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    background-color: #1e2a47;      /* blu scuro coerente con toolbar */
+    color: #ffffff;                 /* testo bianco puro */
+    border: 1px solid #2f3e68;      /* bordo sottile più chiaro */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
 
   ion-card-header {
-    border-bottom: 1px solid #2f3e68; /* separatore delicato sotto intestazione */
+    border-bottom: 2px solid #3B82F6; /* azzurro brillante */
+    padding: 0.75rem 1rem;
   }
 
   ion-card-title {
-    font-weight: bold;
-    color: #a8c0ff; /* blu più chiaro per titoli */
-  }
-
-  ion-list-header {
-    background-color: transparent;
-    padding: 0 16px 8px 16px;
+    font-weight: 700;
+    color: #3B82F6;                  /* azzurro brillante per titoli */
+    font-size: 1.3rem;
   }
 
   ion-list {
-    background-color: transparent;
+    background: transparent;
+    margin: 0;
+    padding: 0;
   }
 
   ion-item {
+    --inner-background: transparent;
+    --ion-item-background: transparent;
     border-bottom: 1px solid #2f3e68;
+    padding: 0.75rem 1rem;
+    color: #ffffff;                  /* testo bianco anche negli item */
   }
 
   .expanded-content {
-    padding: 12px 16px;
-    background: rgba(30, 42, 71, 0.85); /* leggermente trasparente */
-    color: #1a1a1a; /* testo scuro per leggibilità */
-    font-size: 14px;
-    line-height: 1.5;
-    border-radius: 6px;
-    margin: 4px 0 10px 0;
+    padding: 1rem;
+    background-color: rgba(30, 42, 71, 0.95);
+    color: #ffffff;                  /* testo bianco */
+    font-size: 0.95rem;
+    line-height: 1.6;
+    border-radius: 8px;
+    margin: 0.5rem 0 1rem;
+  }
+
+  .expanded-content p,
+  .expanded-content li {
+    color: #ffffff;
   }
 
   .expanded-content ul {
-    padding-left: 20px;
-    color: #1a1a1a; /* testo scuro */
+    padding-left: 1.25rem;
   }
 
-  .expanded-content li {
-    margin-bottom: 6px;
-    color: #1a1a1a; /* testo scuro */
+  ion-card-content {
+    padding: 0.5rem 1rem 1rem;
   }
 }

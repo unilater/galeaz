@@ -1,54 +1,78 @@
 <ion-content>
   <swiper class="swiper-welcome" #swiper [config]="config" (slideChange)="swiperSlideChanged($event)"
     (reachEnd)="onLastSlide()">
-    <ng-template swiperSlide>
-      <ion-icon name="logo-ionic" class="animate__animated animate__fadeInDown"></ion-icon>
 
+    <!-- Slide 1: Benvenuto -->
+    <ng-template swiperSlide>
+      <ion-icon name="home" class="animate__animated animate__fadeInDown" size="large"></ion-icon>
       <h3 class="animate__animated animate__fadeInUp">
-        <ion-text color="light">Ionic Start Theme</ion-text>
+        <ion-text color="light">Tutti i tuoi diritti di famiglia</ion-text>
       </h3>
       <p class="animate__animated animate__fadeInUp">
-        <ion-text color="medium">Latest Ionic version starter theme. Experiencing the best of new features to start your project.</ion-text>
+        <ion-text color="medium">
+          Scopri agevolazioni, tutele legali e servizi sociali pensati per te e la tua famiglia.
+        </ion-text>
       </p>
     </ng-template>
 
+    <!-- Slide 2: Salute e Assistenza -->
     <ng-template swiperSlide>
-      <ion-icon name="logo-capacitor" class="animate__animated animate__fadeInDown"></ion-icon>
-
+      <ion-icon name="medkit" class="animate__animated animate__fadeInDown" size="large"></ion-icon>
       <h3 class="animate__animated animate__fadeInUp">
-        <ion-text color="light">Capacitor Ready</ion-text>
+        <ion-text color="light">Salute e Assistenza</ion-text>
       </h3>
       <p class="animate__animated animate__fadeInUp">
-        <ion-text color="medium">Lorem ipsum dolor sit amet consectetur adipisicing elit. Labore optio mollitia sed sint quod, repellendus illum ex, doloribus, quis ipsam officiis hic saepe commodi? Ab porro laboriosam totam iure et.</ion-text>
+        <ion-text color="medium">
+          Accedi a tutte le informazioni su diritti sanitari, farmaci e supporto psicologico.
+        </ion-text>
       </p>
     </ng-template>
 
+    <!-- Slide 3: Casa e Alloggio -->
     <ng-template swiperSlide>
-      <ion-icon name="stats-chart" class="animate__animated animate__fadeInDown"></ion-icon>
-
+      <ion-icon name="home-outline" class="animate__animated animate__fadeInDown" size="large"></ion-icon>
       <h3 class="animate__animated animate__fadeInUp">
-        <ion-text color="light">Components Sample</ion-text>
+        <ion-text color="light">Casa e Alloggio</ion-text>
       </h3>
       <p class="animate__animated animate__fadeInUp">
-        <ion-text color="medium">Lorem ipsum dolor sit amet consectetur adipisicing elit. Labore optio mollitia sed sint quod, repellendus illum ex, doloribus, quis ipsam officiis hic saepe commodi? Ab porro laboriosam totam iure et.</ion-text>
+        <ion-text color="medium">
+          Scopri le agevolazioni per l’affitto, i programmi di housing sociale e molto altro.
+        </ion-text>
       </p>
     </ng-template>
+
+    <!-- Slide 4: Supporto Legale -->
+    <ng-template swiperSlide>
+      <ion-icon name="gavel" class="animate__animated animate__fadeInDown" size="large"></ion-icon>
+      <h3 class="animate__animated animate__fadeInUp">
+        <ion-text color="light">Supporto Legale</ion-text>
+      </h3>
+      <p class="animate__animated animate__fadeInUp">
+        <ion-text color="medium">
+          Trova consulenza gratuita, tutele e assistenza in caso di discriminazioni o controversie.
+        </ion-text>
+      </p>
+    </ng-template>
+
   </swiper>
 </ion-content>
 
 <ion-footer class="ion-padding-bottom-large animate__animated animate__fadeInUp">
-  <ion-button class="ion-margin" expand="block" size="large" color="secondary" (click)="nextSlide()" *ngIf="!last_slide">
-    Next
+  <ion-button class="ion-margin" expand="block" size="large" color="secondary"
+              (click)="nextSlide()" *ngIf="!last_slide">
+    Avanti
     <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
   </ion-button>
 
-  <ion-button class="ion-margin" expand="block" size="large" color="secondary" (click)="getStarted()" *ngIf="last_slide">
-    Get started
+  <ion-button class="ion-margin" expand="block" size="large" color="secondary"
+              (click)="getStarted()" *ngIf="last_slide">
+    Inizia Ora
   </ion-button>
 
-  <!-- Nuovo pulsante PayPal -->
-  <ion-button class="ion-margin" expand="block" size="large" color="tertiary" (click)="goToPayPal()" *ngIf="last_slide">
-    Pay with PayPal
+  <!-- Pulsante aggiuntivo PayPal solo alla fine -->
+  <ion-button class="ion-margin" expand="block" size="large" color="tertiary"
+              (click)="goToPayPal()" *ngIf="last_slide">
+    Paga con PayPal
     <ion-icon slot="end" name="logo-paypal"></ion-icon>
   </ion-button>
 </ion-footer>
